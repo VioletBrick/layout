@@ -1,0 +1,13 @@
+{
+    "name": "violetbrick/layout",
+    "description": "Layout System for Laravel Framework",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "SergeyCherepanov",
+            "email": "sergey@cherepanov.org.ua"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
