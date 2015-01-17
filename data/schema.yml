@@ -1,0 +1,14 @@
+root:
+  _type: array
+  _children:
+    element:
+      _type: partial
+      _partial: element
+partials:
+  element:
+    class: string
+    children:
+      _type: array
+        element:
+          _type: partial
+          _partial: element
