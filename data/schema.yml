@@ -1,14 +1,16 @@
-root:
-  _type: array
-  _children:
-    element:
-      _type: partial
-      _partial: element
-partials:
-  element:
-    class: string
+default:
+  -page:
+    type: template
+    template: page/default.phtml
     children:
-      _type: array
-        element:
-          _type: partial
-          _partial: element
+      -left_sidebar:
+      -right_sidebar:
+      -content:
+        type: template
+        template: page/content.phtml
+        actions:
+          -addProduct:
+            id: 5
+            
+  -extend:
+    path: catalog/product/view

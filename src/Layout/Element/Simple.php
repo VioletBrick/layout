@@ -8,6 +8,9 @@ use Layout\ElementInterface;
 class Simple
     extends ElementAbstract
 {
+    /**
+     * @return string
+     */
     public function render()
     {
         $output = '';

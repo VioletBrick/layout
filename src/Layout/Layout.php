@@ -27,6 +27,7 @@ class Layout
     {
         $this->eventDispatcher = $dispatcher;
         $this->config          = $config;
+        $this->renderer        = $renderer;
     }
 
     /**
@@ -95,12 +96,6 @@ class Layout
      */
     public function render()
     {
-        $this->eventDispatcher->fire('layout.before_render', array($this, $this->renderer));
-
-        $this->renderer->prepare($this->loadConfig());
-
-        $this->eventDispatcher->fire('layout.after_render', array($this, $this->renderer));
-
         return $this->renderer->render();
     }
 }

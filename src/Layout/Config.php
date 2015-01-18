@@ -4,52 +4,88 @@
 namespace Layout;
 
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
-use Illuminate\Support\Fluent;
-use RomaricDrigon\MetaYaml\MetaYaml;
-use RomaricDrigon\MetaYaml\Loader\YamlLoader;
+use Symfony\Component\Yaml\Parser as Parser;
 
 /** {license_text}  */
 class Config
     implements ConfigInterface
 {
+    const CONFIG_NODE_ACTION = 'action';
+    const CONFIG_NODE_EXTEND = 'extend';
+    const CONFIG_NODE_UNSET  = 'remove';
+
+    protected $systemNodes  = array();
+    
     /** @var  YamlLoader */
-    protected $loader;
+    protected $parser;
     protected $schema;
     
-    protected $configFiles = array();
-    protected $loadPaths = array();
-    protected $data = array();
+    protected $configFiles  = array();
+    protected $configPath   = array();
+    protected $templatePath = array();
+    protected $data         = array();
 
-    public function __construct(YamlLoader $loader)
+    public function __construct(Parser $parser)
     {
-        $schema = $loader->loadFromFile(__DIR__ . "/../../etc/schema.yml");
-
-        $this->loader = $loader;
-        $this->schema = new MetaYaml($schema, true);
+        $this->parser = $parser;
     }
     
     /**
      * @param string $path
      * @return $this
      */
-    public function addLoadPath($path)
+    public function addConfigPath($path)
     {
-        array_unshift($this->loadPaths, $path);
+        array_unshift($this->configPath, $path);
         
         return $this;
+    }
+
+    /**
+     * @param string $path
+     * @return $this
+     */
+    public function addTemplatePath($path)
+    {
+        array_unshift($this->templatePath, $path);
+
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function registerConfigFile($name)
+    {
+        $this->configFiles[] = $name;
     }
 
     /**
      * @param string $fileName
      * @return bool|string
      */
-    protected function resolvePath($fileName)
+    public function resolveConfigPath($fileName)
     {
-        foreach ($this->loadPaths as $path)
-        {
+        foreach ($this->configPath as $path) {
             $filePath = "{$path}/{$fileName}";
             if (is_file($filePath) && is_readable($filePath)) {
-                return $filePath;
+                return realpath($filePath);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $fileName
+     * @return bool|string
+     */
+    public function resolveTemplatePath($fileName)
+    {
+        foreach ($this->templatePath as $path) {
+            $filePath = "{$path}/{$fileName}";
+            if (is_file($filePath) && is_readable($filePath)) {
+                return realpath($filePath);
             }
         }
 
@@ -62,11 +98,9 @@ class Config
      */
     protected function loadFile($fileName)
     {
-        if ($filePath = $this->resolvePath($fileName)) {
-            $data = $this->loader->loadFromFile($fileName);
-            if ($this->schema->validate($data)) {
-                $this->data = array_merge($this->data, $data);
-            }
+        if ($filePath = $this->resolveConfigPath($fileName)) {
+            $data = $this->parser->parse(file_get_contents($filePath));
+            $this->data = array_merge($this->data, $data);
         }
 
         return $this;

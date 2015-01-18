@@ -8,38 +8,39 @@ abstract class ElementAbstract
     extends Fluent
     implements ElementInterface
 {
-    /** @var  RendererInterface  */
+    /** @var  RendererInterface */
     protected $renderer;
+    /** @var  ConfigInterface */
+    protected $config;
     /** @var  ElementInterface */
     protected $parent;
     protected $children = array();
 
     /**
      * @param RendererInterface $renderer
+     * @param ConfigInterface $config
      */
-    public function __construct(RendererInterface $renderer)
+    public function __construct(RendererInterface $renderer, ConfigInterface $config)
     {
         $this->renderer = $renderer;
+        $this->config   = $config;
     }
     
     /**
-     * @param array $elementConfig
+     * @param array $data
      */
-    public function setConfig(array $elementConfig)
+    public function setData(array $data)
     {
-        foreach ($elementConfig as $key => $value) {
-            if (!is_array($value) && !is_object($value)) {
-                $this->attributes[$key] = $value;
-            }
-        }
+        $this->attributes = $data;
     }
 
     /**
      * @param ElementInterface $element
+     * @param null $name
      */
-    public function addChild(ElementInterface $element)
+    public function addChild(ElementInterface $element, $name = null)
     {
-        $name = $element['name'] ? $element['name'] : uniqid('nameless_');
+        $name = ($name ?: $element['name'] ?: uniqid('nameless_'));
         $this->children[$name] = $element;
         $element->setParent($this);
     }
@@ -59,6 +60,20 @@ abstract class ElementAbstract
         }
         
         return false;
+    }
+
+    /**
+     * @param null $name
+     */
+    public function removeChild($name = null)
+    {
+        if ($name) {
+            if (isset($this->children[$name])) {
+                unset($this->children[$name]);
+            }
+        } else {
+            $this->children = array();
+        }
     }
 
     /**
@@ -91,5 +106,30 @@ abstract class ElementAbstract
     public function prepare()
     {
         
+    }
+
+    /**
+     * @param $name
+     * @return string
+     */
+    public function renderChild($name)
+    {
+        return isset($this->children[$name]) ? $this->children[$name]->render() : '';
+    }
+
+    /**
+     * @return mixed
+     */
+    public function __invoke()
+    {
+        return null;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function __toString()
+    {
+        return '';
     }
 }

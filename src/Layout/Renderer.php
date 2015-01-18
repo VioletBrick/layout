@@ -8,13 +8,7 @@ class Renderer
     implements RendererInterface
 {
     protected $app;
-    protected $types          = array();
-    protected $rootElements   = array();
-
-    public function addElementType($typeCode, $abstract)
-    {
-        $this->types[$typeCode];
-    }
+    protected $rootElements = array();
 
     public function __construct(Application $app)
     {
@@ -57,8 +51,9 @@ class Renderer
     protected function getElementInstance($type = null)
     {
         $type = $type ?: 'simple';
+        $type = "layout.element.{$type}";
         
-        return $this->app->make("layout.element.{$type}", array($this));
+        return $this->app->make($type, array($this));
     }
 
     /**
@@ -66,17 +61,35 @@ class Renderer
      * @return ElementInterface
      * @throws RendererException
      */
-    protected function createElement(array $elementConfig)
+    protected function createElement($name, array $elementConfig)
     {
-        $type = $elementConfig['type'] ?: null;
-        $element = $this->getElementInstance($elementConfig['type'] ?: null);
-        
+        $elementData = array();
+        foreach ($elementConfig as $key => $value) {
+            if (0 === strpos($key, '_')) {
+                $elementData[substr($key, 1)] = $value;
+            }
+        }
+
+        $type    = isset($elementData['type']) ? $elementData['type'] : null;
+        $element = $this->getElementInstance($type);
+        $element->setData($elementData);
+
         if (!$element instanceof ElementInterface) {
             throw new RendererException(sprintf('Incorrect element type: "%s".', var_export($type, true)));
         }
         
         return $element;
     }
+
+    /**
+     * @param $name
+     * @return bool
+     */
+    protected function isValidElementName($name)
+    {
+        return 0 < preg_match('/^[^_]\w+$/ui', $name);
+    }
+    
 
     /**
      * @param array $layoutConfig
@@ -87,11 +100,12 @@ class Renderer
     {
         $elements = array();
         foreach ($layoutConfig as $name => $elementConfig) {
-            $element = $this->createElement($elementConfig);
-            $elements[$name] = $element;
-            if ($layoutConfig['children']) {
-                foreach ($this->generateElements($layoutConfig['children']) as $children) {
-                    $element->addChild($children);
+            if ($this->isValidElementName($name)) {
+                $elements[$name] = $this->createElement($name, is_array($elementConfig) ? $elementConfig : array());
+                if (is_array($elementConfig)) {
+                    foreach ($this->generateElements($elementConfig) as $childName => $child) {
+                        $elements[$name]->addChild($child, $childName);
+                    }
                 }
             }
         }
@@ -119,6 +133,7 @@ class Renderer
     public function prepare(ConfigInterface $layoutConfig)
     {
         $this->rootElements = $this->generateElements($layoutConfig->toArray());
+        
         $this->prepareElements($this->rootElements);
     }
 

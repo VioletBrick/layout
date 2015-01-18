@@ -34,10 +34,17 @@ class LayoutServiceProvider extends ServiceProvider {
             
             /** @var \Layout\Config $config */
             $config = $this->app->make('Layout\Config');
-            $config->addLoadPath($designDir);
+            $config->addConfigPath($designDir . '/layout');
+            $config->addTemplatePath($designDir . '/template');
+
+            $config->registerConfigFile('main.yaml');
             
             return $config;
         });
+
+        $this->app->bind('layout.element.simple', 'Layout\Element\Simple');
+        $this->app->bind('layout.element.text', 'Layout\Element\Text');
+        $this->app->bind('layout.element.template', 'Layout\Element\Template');
 
         $this->app->when('Layout\Layout')->needs('Illuminate\Contracts\Events\Dispatcher')->give('Illuminate\Events\Dispatcher');
     }

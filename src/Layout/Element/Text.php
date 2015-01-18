@@ -9,6 +9,6 @@ class Text
 {
     public function render()
     {
-        return $this['text'];
+        return sprintf('%s', $this['text']);
     }
 }
