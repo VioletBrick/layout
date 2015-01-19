@@ -27,7 +27,6 @@ class LayoutServiceProvider extends ServiceProvider {
     {
         $this->app->bind('Layout\LayoutInterface','Layout\Layout');
         $this->app->bind('Layout\RendererInterface','Layout\Renderer');
-        $this->app->bind('Layout\RendererInterface','Layout\Renderer');
 
         $this->app->singleton('Layout\ConfigInterface', function () {
             $designDir = realpath(base_path('resources/design'));
