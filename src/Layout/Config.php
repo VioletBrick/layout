@@ -94,27 +94,57 @@ class Config
 
     /**
      * @param $fileName
-     * @return $this
+     * @return array
      */
     protected function loadFile($fileName)
     {
         if ($filePath = $this->resolveConfigPath($fileName)) {
-            $data = $this->parser->parse(file_get_contents($filePath));
-            $this->data = array_merge($this->data, $data);
+            return $this->parser->parse(file_get_contents($filePath));
         }
-
-        return $this;
+        
+        return array();
     }
 
     /**
+     * @param array $target
+     * @param array $data
+     * @return array
+     */
+    protected function arrayMerge(array $target, array $data)
+    {
+        foreach ($data as $key => $value) {
+            if (is_array($value) && isset($target[$key]) && is_array($target[$key])) {
+                $target[$key] = $this->arrayMerge($target[$key], $value);
+            } else {
+                $target[$key] = $value;
+            }
+        }
+        
+        return $target;
+    }
+
+    /**
+     * @param array $handles
      * @return $this
      */
-    public function load()
+    public function load(array $handles)
     {
+        $data = array();
         foreach ($this->configFiles as $file) {
-            $this->loadFile($file);
+            $data = $this->arrayMerge($data, $this->loadFile($file));
         }
-
+        
+        foreach ($data as $handle => $handleData) {
+            if (in_array($handle, $handles)) {
+                if (empty($this->data)) {
+                    $this->data = $handleData;
+                } else {
+                    $this->data = $this->arrayMerge($this->data, $handleData);
+                }
+                
+            }
+        }
+        
         return $this;
     }
 

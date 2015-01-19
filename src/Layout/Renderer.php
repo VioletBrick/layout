@@ -69,6 +69,8 @@ class Renderer
                 $elementData[substr($key, 1)] = $value;
             }
         }
+        
+        $elementData['name'] = $name;
 
         $type    = isset($elementData['type']) ? $elementData['type'] : null;
         $element = $this->getElementInstance($type);

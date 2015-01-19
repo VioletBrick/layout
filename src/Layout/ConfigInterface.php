@@ -4,7 +4,7 @@ namespace Layout;
 /** {license_text}  */ 
 interface ConfigInterface
 {
-    public function load();
+    public function load(array $handles);
     public function addConfigPath($path);
     public function addTemplatePath($path);
     public function toArray();

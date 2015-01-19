@@ -38,6 +38,7 @@ class LayoutServiceProvider extends ServiceProvider {
             $config->addTemplatePath($designDir . '/template');
 
             $config->registerConfigFile('main.yaml');
+            $config->registerConfigFile('local.yaml');
             
             return $config;
         });

@@ -61,7 +61,7 @@ class Layout
     {
         $this->eventDispatcher->fire('layout.before_load_config', array($this));
         
-        $this->config->load();
+        $this->config->load($this->getHandles());
 
         $this->eventDispatcher->fire('layout.after_after_load_config', array($this));
         
