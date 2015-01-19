@@ -2,6 +2,10 @@
     "name": "violetbrick/layout",
     "description": "Layout System for Laravel Framework",
     "license": "MIT",
+    "require": {
+        "laravel/framework": "~5.0",
+        "violetbrick/layout": "dev-master"
+    },
     "authors": [
         {
             "name": "SergeyCherepanov",
@@ -9,7 +13,6 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {},
     "autoload": {
         "psr-4": {"Layout\\": "src/Layout"}
     }

@@ -1,0 +1,18 @@
+default:
+  page:
+    _type: template
+    _template: page.phtml
+    left:
+    right:
+    content:
+      main:
+        _type: text
+        _text: "content text"
+home: 
+  page:
+    _type: template
+    _template: page.phtml
+    content:
+      main:
+        _type: text
+        _text: "home page"

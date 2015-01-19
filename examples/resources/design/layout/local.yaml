@@ -1,0 +1,11 @@
+default:
+  page:
+    left:
+      ltext:
+        _type: text
+        _text: "left sidebar text"
+    right:
+      rtext:
+        _type: text
+        _text: "right sidebar text"
+    

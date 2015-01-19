@@ -1,0 +1,33 @@
+<?php
+    /** @var Layout\Element\Template  $this */
+?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <?php $this->renderChild('head') ?>
+</head>
+<body>
+<?php echo $this->renderChild('after_body_start') ?>
+<div class="wrapper">
+    <?php echo $this->renderChild('global_notices') ?>
+    <div class="page">
+        <?php echo $this->renderChild('header') ?>
+        <div class="main-container col3-layout">
+            <div class="main">
+                <?php echo $this->renderChild('breadcrumbs') ?>
+                <div class="col-wrapper">
+                    <div class="col-main">
+                        <?php echo $this->renderChild('global_messages') ?>
+                        <?php echo $this->renderChild('content') ?>
+                    </div>
+                    <div class="col-left sidebar"><?php echo $this->renderChild('left') ?></div>
+                </div>
+                <div class="col-right sidebar"><?php echo $this->renderChild('right') ?></div>
+            </div>
+        </div>
+        <?php echo $this->renderChild('footer') ?>
+        <?php echo $this->renderChild('global_cookie_notice') ?>
+        <?php echo $this->renderChild('before_body_end') ?>
+    </div>
+</div>
+</body>
+</html>
