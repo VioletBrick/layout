@@ -31,7 +31,7 @@ class LayoutController extends Controller
      */
     public function home(Layout $layout)
     {
-        return $layout->load(['default', home])->render();
+        return $layout->load(['default', 'home'])->render();
     }
 
 }
