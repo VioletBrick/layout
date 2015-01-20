@@ -21,7 +21,7 @@ class LayoutController extends Controller
      */
     public function index(Layout $layout)
     {
-        return $layout->load()->render();
+        return $layout->load()->process();
     }
 
     /**
@@ -31,7 +31,7 @@ class LayoutController extends Controller
      */
     public function home(Layout $layout)
     {
-        return $layout->load(['home'])->render();
+        return $layout->load(['home'])->process();
     }
 
 }

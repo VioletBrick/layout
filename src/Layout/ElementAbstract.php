@@ -1,31 +1,39 @@
 <?php
 
 namespace Layout;
-use Illuminate\Support\Fluent;
+use Layout\Output\FormatInterface;
+use Layout\Support\Fluent;
+use Layout\Support\FluentInterface;
+use Layout\Support\FluentTrait;
 
 /** {license_text}  */ 
 abstract class ElementAbstract
-    extends Fluent
-    implements ElementInterface
+    implements ElementInterface, FluentInterface
 {
-    /** @var  RendererInterface */
-    protected $renderer;
-    /** @var  ConfigInterface */
-    protected $config;
+    use FluentTrait;
+    /** @var  FormatInterface */
+    protected $format;
     /** @var  ElementInterface */
     protected $parent;
-    protected $children = array();
+    protected $children      = array();
+    protected $publicData    = array();
+    protected $protectedData = array();
 
     /**
-     * @param RendererInterface $renderer
-     * @param ConfigInterface $config
+     * @param $name
+     * @param array $data
      */
-    public function __construct(RendererInterface $renderer, ConfigInterface $config)
+    public function __construct($name, array $data = array())
     {
-        $this->renderer = $renderer;
-        $this->config   = $config;
+        $data['name']        = $name;
+        $this->attributes    = $data;
+        $this->publicData    = array();
+        $this->protectedData = array();
+        $this->initialize($this->publicData, $this->protectedData);
     }
-    
+
+    abstract protected function initialize(&$publicData);
+
     /**
      * @param array $data
      */
@@ -63,7 +71,7 @@ abstract class ElementAbstract
     }
 
     /**
-     * @param null $name
+     * @param string|null $name
      */
     public function removeChild($name = null)
     {
@@ -101,24 +109,7 @@ abstract class ElementAbstract
     }
 
     /**
-     * Prepare layout
-     */
-    public function prepare()
-    {
-        
-    }
-
-    /**
-     * @param $name
-     * @return string
-     */
-    public function renderChild($name)
-    {
-        return isset($this->children[$name]) ? $this->children[$name]->render() : '';
-    }
-
-    /**
-     * @return mixed
+     * @return null
      */
     public function __invoke()
     {
@@ -126,10 +117,30 @@ abstract class ElementAbstract
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function __toString()
     {
         return '';
+    }
+
+    /**
+     * @return array|Fluent
+     */
+    public function getPublicData()
+    {
+        return $this->publicData;
+    }
+
+    /**
+     * @param \ArrayAccess|array $target
+     * @param \ArrayAccess|array $source
+     * @param array $map
+     */
+    protected function fill(&$target, &$source, array $map)
+    {
+        foreach ($map as $key) {
+            $target[$key] = $source[$key];
+        }
     }
 }

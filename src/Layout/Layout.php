@@ -2,7 +2,7 @@
 namespace Layout;
 
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcherInterface;
-use Illuminate\Support\Fluent;
+use Layout\Output\FormatInterface;
 
 /** {license_text}  */ 
 class Layout
@@ -15,19 +15,19 @@ class Layout
     protected $eventDispatcher;
     /** @var  ConfigInterface  */
     protected $config;
-    /** @var  RendererInterface */
-    protected $renderer;
+    /** @var  OutputInterface */
+    protected $output;
 
     /**
      * @param EventDispatcherInterface $dispatcher
      * @param ConfigInterface $config
-     * @param RendererInterface $renderer
+     * @param OutputInterface $output
      */
-    public function __construct(EventDispatcherInterface $dispatcher, ConfigInterface $config, RendererInterface $renderer)
+    public function __construct(EventDispatcherInterface $dispatcher, ConfigInterface $config, OutputInterface $output)
     {
         $this->eventDispatcher = $dispatcher;
         $this->config          = $config;
-        $this->renderer        = $renderer;
+        $this->output          = $output;
     }
 
     /**
@@ -81,21 +81,28 @@ class Layout
         
         $this->setHandles($handles);
 
-        $this->eventDispatcher->fire('layout.before_renderer_prepare', array($this, $this->renderer));
-
-        $this->renderer->prepare($this->loadConfig());
-
-        $this->eventDispatcher->fire('layout.after_renderer_prepare', array($this, $this->renderer));
-        
         return $this;
     }
 
-
     /**
+     * @param FormatInterface $format
+     * @param string|array $handles
+     * @param bool $useDefault
      * @return mixed
      */
-    public function render()
+    public function process(FormatInterface $format, $handles = [], $useDefault = true)
     {
-        return $this->renderer->render();
+        if ($handles && !is_array($handles)) {
+            $handles = [$handles];
+        }
+        if ($useDefault) {
+            $handles[] = 'default';
+        }
+
+        $this->setHandles($handles);
+        
+        $this->output->setFormat($format);
+        
+        return $this->output->process($this->loadConfig());
     }
 }

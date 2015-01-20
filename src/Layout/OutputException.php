@@ -1,7 +1,7 @@
 <?php
 namespace Layout;
 /** {license_text}  */ 
-class RendererException extends ExceptionAbstract
+class OutputException extends ExceptionAbstract
 {
     
 }

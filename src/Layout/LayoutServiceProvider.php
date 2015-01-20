@@ -1,6 +1,9 @@
 <?php namespace Layout;
 
 use Illuminate\Support\ServiceProvider;
+use Layout\Output\FormatInterface;
+use Layout\Output\FormatHtml;
+use Layout\Output\FormatJson;
 
 class LayoutServiceProvider extends ServiceProvider {
 
@@ -25,12 +28,20 @@ class LayoutServiceProvider extends ServiceProvider {
      */
     public function register()
     {
-        $this->app->bind('Layout\LayoutInterface','Layout\Layout');
-        $this->app->bind('Layout\RendererInterface','Layout\Renderer');
+        $this->app->when('Layout\Layout')->needs('Illuminate\Contracts\Events\Dispatcher')->give('Illuminate\Events\Dispatcher');
+        $this->app->bind('Layout\LayoutInterface','  Layout\Layout');
 
+        $this->initializeConfig();
+        $this->initializeElements();
+        $this->initializeOutputFormatHtml();
+        $this->initializeOutputFormatJson();
+    }
+    
+    protected function initializeConfig()
+    {
         $this->app->singleton('Layout\ConfigInterface', function () {
             $designDir = realpath(base_path('resources/design'));
-            
+
             /** @var \Layout\Config $config */
             $config = $this->app->make('Layout\Config');
             $config->addConfigPath($designDir . '/layout');
@@ -38,15 +49,61 @@ class LayoutServiceProvider extends ServiceProvider {
 
             $config->registerConfigFile('main.yaml');
             $config->registerConfigFile('local.yaml');
-            
+
             return $config;
         });
+    }
+    
+    protected function initializeOutputFormatHtml()
+    {
+        /** @var FormatHtml $format */
+        $format = $this->app->make('Layout\Output\FormatHtml');
 
-        $this->app->bind('layout.element.simple', 'Layout\Element\Simple');
-        $this->app->bind('layout.element.text', 'Layout\Element\Text');
-        $this->app->bind('layout.element.template', 'Layout\Element\Template');
-
-        $this->app->when('Layout\Layout')->needs('Illuminate\Contracts\Events\Dispatcher')->give('Illuminate\Events\Dispatcher');
+        $this->registerOutputModel($format, 'default', 'Layout\Element\Output\Html\HtmlDefault');
+        $this->registerOutputModel($format, 'template', 'Layout\Element\Output\Html\Template');
+        $this->registerOutputModel($format, 'welcome', 'Layout\Element\Output\Html\Welcome');
+        $this->registerOutputModel($format, 'text', 'Layout\Element\Output\Html\Text');
+        
+        $this->app->instance('Layout\Output\FormatHtml', $format);
     }
 
+    protected function initializeOutputFormatJson()
+    {
+        /** @var FormatJson $format */
+        $format = $this->app->make('Layout\Output\FormatJson');
+
+        $this->registerOutputModel($format, 'default', 'Layout\Element\Output\Html\HtmlDefault');
+        $this->registerOutputModel($format, 'template', 'Layout\Element\Output\Html\Template');
+        $this->registerOutputModel($format, 'welcome', 'Layout\Element\Output\Html\Welcome');
+        $this->registerOutputModel($format, 'text', 'Layout\Element\Output\Html\Text');
+
+        $this->app->instance('Layout\Output\FormatJson', $format);
+    }
+    
+    protected function registerOutputModel(FormatInterface $format, $code, $concrete)
+    {
+        $format->registerOutputModel($code);
+        $this->app->bind($format->formatOutputModelAlias($code), $concrete);
+    }
+    
+    protected function initializeElements()
+    {
+        $this->app->bind('Layout\OutputInterface', function () {
+            /** @var Output $output */
+            $output = $this->app->make('Layout\Output');
+
+            $this->registerElementTypeModel($output, 'default', 'Layout\Element\Type\ElementDefault');
+            $this->registerElementTypeModel($output, 'template', 'Layout\Element\Type\Template');
+            $this->registerElementTypeModel($output, 'welcome', 'Layout\Element\Type\Welcome');
+            $this->registerElementTypeModel($output, 'text', 'Layout\Element\Type\Text');
+            
+            return $output;
+        });
+    }
+    
+    protected function registerElementTypeModel(Output $output, $code, $concrete)
+    {
+        $output->registerElementTypeModel($code);
+        $this->app->bind($output->getElementIocAlias($code), $concrete);
+    }
 }

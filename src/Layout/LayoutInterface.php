@@ -1,10 +1,10 @@
 <?php
 namespace Layout;
+use Layout\Output\FormatInterface;
+
 /** {license_text}  */ 
 
 interface LayoutInterface
 {
-    public function load(array $handles = [], $useDefault = true);
-    public function render();
-
+    public function process(FormatInterface $format, $handles = [], $useDefault = true);
 }
