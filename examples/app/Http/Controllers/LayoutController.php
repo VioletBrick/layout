@@ -1,6 +1,8 @@
 <?php namespace App\Http\Controllers;
 
 use Layout\Layout;
+use Layout\Output\FormatHtml as OutputFormatHtml;
+use Layout\Output\FormatJson as OutputFormatJson;
 
 class LayoutController extends Controller 
 {
@@ -15,23 +17,23 @@ class LayoutController extends Controller
     }
 
     /**
-     * Render layout example page.
-     *
-     * @return string
+     * @param Layout $layout
+     * @param OutputFormatHtml $format
+     * @return mixed
      */
-    public function index(Layout $layout)
+    public function html(Layout $layout, OutputFormatHtml $format)
     {
-        return $layout->load()->process();
+        return $layout->process($format, 'layout_index');
     }
 
     /**
-     * Render layout home page.
-     *
-     * @return string
+     * @param Layout $layout
+     * @param OutputFormatJson $format
+     * @return mixed
      */
-    public function home(Layout $layout)
+    public function json(Layout $layout, OutputFormatJson $format)
     {
-        return $layout->load(['home'])->process();
+        return "<pre>" . json_encode($layout->process($format, 'layout_index'), JSON_PRETTY_PRINT) . "</pre>";
     }
 
 }
