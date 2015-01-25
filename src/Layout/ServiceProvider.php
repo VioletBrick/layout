@@ -70,7 +70,7 @@ class ServiceProvider extends ServiceProviderAbstract
             $factory->registerDefaultModel('Layout\Element\Type\TypeDefault');
             $factory->registerDefaultOutputModel('Layout\Element\Output\Json\JsonDefault');
             
-            $factory->register('template', 'Layout\Element\Type\Template', 'Layout\Element\Output\Json\Template');
+            $factory->register('template', 'Layout\Element\Type\Template');
             $factory->register('welcome', 'Layout\Element\Type\Welcome');
             $factory->register('text', 'Layout\Element\Type\Text');
             

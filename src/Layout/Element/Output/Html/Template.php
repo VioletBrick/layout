@@ -7,8 +7,6 @@ use Layout\LayoutConfig;
 class Template
     extends HtmlDefault
 {
-    protected $template;
-    
     public function __construct(LayoutConfig $config)
     {
         $this->config = $config;
@@ -20,8 +18,8 @@ class Template
     public function toHtml()
     {
         $output = '';
-        if ($this->template) {
-            $template = $this->config->resolveTemplatePath($this->template);
+        if ($template = $this->getHiddenData('template')) {
+            $template = $this->config->resolveTemplatePath($template);
             if ($template) {
                 ob_start();
                 require $template;

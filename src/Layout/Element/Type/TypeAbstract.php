@@ -4,7 +4,9 @@ namespace Layout\Element\Type;
 
 use Layout\Element\Output\OutputInterface as ElementOutputInterface;
 use Layout\Output\FormatInterface;
+use Layout\Support\FluentInterface;
 use Layout\Support\FluentTrait;
+use Predis\Connection\FactoryInterface;
 
 abstract class TypeAbstract
     implements TypeInterface
@@ -33,7 +35,20 @@ abstract class TypeAbstract
      * 
      * @return array
      */
-    abstract protected function getPublicData();
+    protected function getPublicData()
+    {
+        return array();
+    }
+
+    /**
+     * Prepare hidden data for frontend model
+     * 
+     * @return array
+     */
+    protected function getHiddenData()
+    {
+        return array();
+    }
     
     /**
      * @return mixed
@@ -41,7 +56,8 @@ abstract class TypeAbstract
     public function getOutput()
     {
         $output     = $this->output;
-        $output->setData($this->getPublicData());
+        $output->setPublicData($this->getPublicData());
+        $output->setHiddenData($this->getHiddenData());
         
         if ($this->hasChild()) {
             foreach ($this->getChild() as $name => $childElement) {
@@ -142,17 +158,23 @@ abstract class TypeAbstract
     {
         return '';
     }
-
+    
     /**
      * @param $target
      * @param $source
      * @param array $map
-     * @return mixed
+     * @return array|FactoryInterface
+     * @throws TypeException
      */
     protected function fill($target, $source, array $map)
     {
-        foreach ($map as $key) {
-            $target[$key] = $source[$key];
+        if ((is_array($target) || $target instanceof FluentInterface) 
+            && (is_array($source) || $source instanceof FluentInterface)) {
+            foreach ($map as $key) {
+                $target[$key] = $source[$key];
+            }
+        } else {
+            throw new TypeException('Invalid data type for fill method');
         }
         
         return $target;

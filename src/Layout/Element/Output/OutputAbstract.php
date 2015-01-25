@@ -12,6 +12,7 @@ abstract class OutputAbstract
     use FluentTrait;
     
     protected $childOutputResult = array();
+    protected $hiddenData = array();
 
     /**
      * @param $childName
@@ -23,15 +24,33 @@ abstract class OutputAbstract
     }
 
     /**
+     * @param array|FluentInterface $data
+     */
+    public function setHiddenData($data)
+    {
+        if (is_array($data) || $data instanceof FluentInterface) {
+            foreach ($data as $key => $value) {
+                $this->hiddenData[$key] = $value;
+            }
+        }
+    }
+    
+    /**
+     * @param $key
+     * @return null
+     */
+    protected function getHiddenData($key)
+    {
+        return isset($this->hiddenData[$key]) ? $this->hiddenData[$key] : null;
+    }
+
+    /**
      * @param array $data
      */
-    public function setData($data)
+    public function setPublicData($data)
     {
-        if (!is_array($data) && !$data instanceof FluentInterface) {
-            return;
-        }
-        foreach ($data as $key => $value) {
-            $this->{$key} = $value;
+        if (is_array($data) || $data instanceof FluentInterface) {
+            $this->setAttributes($data);
         }
     }
     

@@ -8,8 +8,17 @@ class Welcome
     protected function getPublicData()
     {
         return $this->fill(array(), $this, array(
-            'template',
             'welcome',
+        ));
+    }
+
+    /**
+     * @return array
+     */
+    protected function getHiddenData()
+    {
+        return $this->fill(array(), $this, array(
+            'template',
         ));
     }
 }
