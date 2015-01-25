@@ -3,10 +3,9 @@
 namespace Layout\Processor;
 
 use Illuminate\Foundation\Application;
-use Layout\BuilderInterface;
 use Layout\LayoutConfigInterface;
+use Layout\Element\BuilderInterface;
 use Layout\Element\Factory\FactoryInterface;
-use Layout\Output\FormatInterface;
 use Layout\Element\Type\TypeInterface as ElementTypeInterface;
 
 abstract class ProcessorAbstract
@@ -38,33 +37,22 @@ abstract class ProcessorAbstract
     }
 
     /**
-     * @param FormatInterface $format
-     */
-    public function setFormat(FormatInterface $format)
-    {
-        $this->format = $format;
-    }
-
-    /**
      * @param LayoutConfigInterface $layoutConfig
      * @return mixed
      * @throws ProcessorException
      */
     public function run(LayoutConfigInterface $layoutConfig)
     {
-        $outputFormat = $this->format;
-        $factory      = $this->factory;
-
-        if (!$outputFormat instanceof FormatInterface) {
-            throw new ProcessorException("Output format not defined");
+        if (!$this->factory instanceof FactoryInterface) {
+            throw new ProcessorException("Element Factory not defined");
         }
 
-        if (!$factory instanceof FactoryInterface) {
-            throw new ProcessorException("Element Factory not defined");
+        if (!$this->builder instanceof BuilderInterface) {
+            throw new ProcessorException("Element Builder not defined");
         }
         
         $rootElement = $this->builder->buildStructure($layoutConfig, $this->factory);
         
-        return $outputFormat->format($rootElement->getOutput());
+        return $rootElement->getOutput();
     }
 }

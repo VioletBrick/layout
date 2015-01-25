@@ -1,9 +1,10 @@
 <?php
 /** {license_text}  */
-namespace Layout;
+namespace Layout\Element;
 
 use Layout\Element\Factory\FactoryInterface;
 use Layout\Element\Type\TypeInterface as ElementTypeInterface;
+use Layout\LayoutConfigInterface;
 
 class Builder
     implements BuilderInterface
