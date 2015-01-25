@@ -1,8 +1,9 @@
 <?php namespace App\Http\Controllers;
 
-use Layout\Layout;
-use Layout\Output\FormatHtml as OutputFormatHtml;
-use Layout\Output\FormatJson as OutputFormatJson;
+use Layout\LayoutConfig;
+use Layout\Processor\ProcessorHtml;
+use Layout\Processor\ProcessorJson;
+
 
 class LayoutController extends Controller 
 {
@@ -17,23 +18,29 @@ class LayoutController extends Controller
     }
 
     /**
-     * @param Layout $layout
-     * @param OutputFormatHtml $format
+     * @param LayoutConfig $config
+     * @param ProcessorHtml $processor
      * @return mixed
+     * @throws \Layout\Processor\ProcessorException
      */
-    public function html(Layout $layout, OutputFormatHtml $format)
+    public function html(LayoutConfig $config, ProcessorHtml $processor)
     {
-        return $layout->process($format, 'layout_index');
+        $config->load('layout_index');
+
+        return $processor->run($config);
     }
 
     /**
-     * @param Layout $layout
-     * @param OutputFormatJson $format
+     * @param LayoutConfig $config
+     * @param ProcessorJson $processor
      * @return mixed
+     * @throws \Layout\Processor\ProcessorException
      */
-    public function json(Layout $layout, OutputFormatJson $format)
+    public function json(LayoutConfig $config, ProcessorJson $processor)
     {
-        return "<pre>" . json_encode($layout->process($format, 'layout_index'), JSON_PRETTY_PRINT) . "</pre>";
+        $config->load('layout_index');
+
+        return $processor->run($config);
     }
 
 }
