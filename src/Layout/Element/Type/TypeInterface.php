@@ -3,7 +3,6 @@
 namespace Layout\Element\Type;
 
 use ArrayAccess;
-use Layout\Element\Output\OutputInterface as ElementOutputInterface;
 use Layout\Support\Fluent;
 use JsonSerializable;
 use Illuminate\Contracts\Support\Jsonable;
@@ -22,13 +21,6 @@ interface TypeInterface
      * @return mixed
      */
     public function getOutput();
-
-    /**
-     * Retrieve element public data
-     * 
-     * @return Fluent|array
-     */
-    //public function getPublicData();
 
     /**
      * @param TypeInterface $element

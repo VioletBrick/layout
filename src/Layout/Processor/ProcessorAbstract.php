@@ -38,10 +38,10 @@ abstract class ProcessorAbstract
 
     /**
      * @param LayoutConfigInterface $layoutConfig
-     * @return mixed
+     * @return ElementTypeInterface
      * @throws ProcessorException
      */
-    public function run(LayoutConfigInterface $layoutConfig)
+    public function build(LayoutConfigInterface $layoutConfig)
     {
         if (!$this->factory instanceof FactoryInterface) {
             throw new ProcessorException("Element Factory not defined");
@@ -50,9 +50,17 @@ abstract class ProcessorAbstract
         if (!$this->builder instanceof BuilderInterface) {
             throw new ProcessorException("Element Builder not defined");
         }
-        
-        $rootElement = $this->builder->buildStructure($layoutConfig, $this->factory);
-        
-        return $rootElement->getOutput();
+
+        return $this->builder->buildStructure($layoutConfig, $this->factory);
+    }
+
+    /**
+     * @param LayoutConfigInterface $layoutConfig
+     * @return mixed
+     * @throws ProcessorException
+     */
+    public function run(LayoutConfigInterface $layoutConfig)
+    {
+        return $this->build($layoutConfig)->getOutput();
     }
 }

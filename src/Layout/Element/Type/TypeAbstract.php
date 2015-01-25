@@ -3,7 +3,6 @@
 namespace Layout\Element\Type;
 
 use Layout\Element\Output\OutputInterface as ElementOutputInterface;
-use Layout\Output\FormatInterface;
 use Layout\Support\FluentInterface;
 use Layout\Support\FluentTrait;
 use Predis\Connection\FactoryInterface;
@@ -13,8 +12,6 @@ abstract class TypeAbstract
 {
     use FluentTrait;
     
-    /** @var  FormatInterface */
-    protected $format;
     /** @var  TypeInterface */
     protected $parent;
     protected $children = array();
@@ -74,7 +71,7 @@ abstract class TypeAbstract
      */
     public function setData(array $data)
     {
-        $this->attributes = $data;
+        $this->setAttributes($data);
     }
 
     /**
