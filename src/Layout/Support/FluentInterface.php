@@ -8,5 +8,5 @@ use Illuminate\Contracts\Support\Jsonable;
 interface FluentInterface
     extends \ArrayAccess, Arrayable, Jsonable, \JsonSerializable
 {
-    
+    public function setAttributes($attributes = array());
 }

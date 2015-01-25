@@ -10,20 +10,32 @@ abstract class HtmlAbstract
     implements HtmlInterface
 {
     /**
+     * @return string
+     */
+    public function getOutput()
+    {
+        return $this->toHtml();
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->toHtml();
+    }
+
+    /**
      * @param string $key
      * @param null $default
-     * @return array|mixed|string
+     * @return string
      */
     public function get($key, $default = null)
     {
-        $value = parent::get($key, $default);
-        
-        if (!$value) {
-            if (isset($this->children[$key])) {
-                $value = $this->children[$key];
-            }
+        if (isset($this->childOutputResult[$key])) {
+            return $this->childOutputResult[$key];
         }
         
-        return $value;
+        return parent::get($key, $default);
     }
 }

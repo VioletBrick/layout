@@ -2,10 +2,8 @@
 /** {license_text}  */ 
 namespace Layout\Element\Output;
 
-use Layout\Support\Fluent;
 use Layout\Support\FluentInterface;
 use Layout\Support\FluentTrait;
-use Layout\Output\FormatInterface;
 use Layout\Element\Output\OutputInterface as ElementOutputInterface;
 
 abstract class OutputAbstract
@@ -13,41 +11,32 @@ abstract class OutputAbstract
 {
     use FluentTrait;
     
-    /** @var  FormatInterface  */
-    protected $format;
-    protected $children = array();
+    protected $childOutputResult = array();
 
     /**
-     * @param FormatInterface $format
-     * @param array $data
+     * @param $childName
+     * @param $value
      */
-    public function __construct(FormatInterface $format, $data = array())
+    public function addChildOutputResult($childName, $value)
     {
-        $this->setData($data);
-        $this->format = $format;
+        $this->childOutputResult[$childName] = $value;
     }
 
     /**
      * @param array $data
      */
-    protected function setData(array $data)
+    public function setData($data)
     {
+        if (!is_array($data) && !$data instanceof FluentInterface) {
+            return;
+        }
         foreach ($data as $key => $value) {
             $this->{$key} = $value;
         }
     }
-
-    /**
-     * @return array
-     */
-    public function toArray()
-    {
-        return $this->prepareArray(array_merge($this->attributes, $this->children));
-    }
-    
     
     public function __call($method, $parameters)
     {
-        return '';
+        return null;
     }
 }

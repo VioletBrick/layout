@@ -3,8 +3,6 @@
 
 namespace Layout\Output;
 
-use Layout\ElementInterface;
-
 interface FormatInterface
 {
     /**
@@ -13,12 +11,8 @@ interface FormatInterface
     public function getCode();
 
     /**
-     * @return string
+     * @param $data
+     * @return mixed
      */
-    public function getIocPrefix();
-    public function formatOutputModelAlias($code);
-    public function getIocOutputModelAlias($code);
     public function format($data);
-    public function processElement(ElementInterface $element);
-    public function registerOutputModel($code);
 }

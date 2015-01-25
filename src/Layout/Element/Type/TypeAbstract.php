@@ -1,38 +1,57 @@
 <?php
+/** {license_text}  */
+namespace Layout\Element\Type;
 
-namespace Layout;
+use Layout\Element\Output\OutputInterface as ElementOutputInterface;
 use Layout\Output\FormatInterface;
-use Layout\Support\Fluent;
-use Layout\Support\FluentInterface;
 use Layout\Support\FluentTrait;
 
-/** {license_text}  */ 
-abstract class ElementAbstract
-    implements ElementInterface, FluentInterface
+abstract class TypeAbstract
+    implements TypeInterface
 {
     use FluentTrait;
+    
     /** @var  FormatInterface */
     protected $format;
-    /** @var  ElementInterface */
+    /** @var  TypeInterface */
     protected $parent;
-    protected $children      = array();
-    protected $publicData    = array();
-    protected $protectedData = array();
-
+    protected $children = array();
+    /** @var  ElementOutputInterface */
+    protected $output;
+    protected $prepared = false;
+    
     /**
-     * @param $name
-     * @param array $data
+     * @param ElementOutputInterface $outputInterface
      */
-    public function __construct($name, array $data = array())
+    public function __construct(ElementOutputInterface $outputInterface)
     {
-        $data['name']        = $name;
-        $this->attributes    = $data;
-        $this->publicData    = array();
-        $this->protectedData = array();
-        $this->initialize($this->publicData, $this->protectedData);
+        $this->output = $outputInterface;
     }
 
-    abstract protected function initialize(&$publicData);
+    /**
+     * Prepare data for frontend model
+     * 
+     * @return array
+     */
+    abstract protected function getPublicData();
+    
+    /**
+     * @return mixed
+     */
+    public function getOutput()
+    {
+        $output     = $this->output;
+        $output->setData($this->getPublicData());
+        
+        if ($this->hasChild()) {
+            foreach ($this->getChild() as $name => $childElement) {
+                $output->addChildOutputResult($name, $childElement->getOutput());
+            }
+        }
+
+        /** @var ElementOutputInterface $outputModel */
+        return $output->getOutput();
+    }
 
     /**
      * @param array $data
@@ -43,10 +62,10 @@ abstract class ElementAbstract
     }
 
     /**
-     * @param ElementInterface $element
+     * @param TypeInterface $element
      * @param null $name
      */
-    public function addChild(ElementInterface $element, $name = null)
+    public function addChild(TypeInterface $element, $name = null)
     {
         $name = ($name ?: $element['name'] ?: uniqid('nameless_'));
         $this->children[$name] = $element;
@@ -55,7 +74,7 @@ abstract class ElementAbstract
 
     /**
      * @param null $name
-     * @return array|bool|ElementInterface
+     * @return array|bool|TypeInterface
      */
     public function getChild($name = null)
     {
@@ -93,15 +112,15 @@ abstract class ElementAbstract
     }
 
     /**
-     * @param ElementInterface $element
+     * @param TypeInterface $element
      */
-    public function setParent(ElementInterface $element)
+    public function setParent(TypeInterface $element)
     {
         $this->parent = $element;
     }
 
     /**
-     * @return ElementInterface
+     * @return TypeInterface
      */
     public function getParent()
     {
@@ -125,22 +144,17 @@ abstract class ElementAbstract
     }
 
     /**
-     * @return array|Fluent
-     */
-    public function getPublicData()
-    {
-        return $this->publicData;
-    }
-
-    /**
-     * @param \ArrayAccess|array $target
-     * @param \ArrayAccess|array $source
+     * @param $target
+     * @param $source
      * @param array $map
+     * @return mixed
      */
-    protected function fill(&$target, &$source, array $map)
+    protected function fill($target, $source, array $map)
     {
         foreach ($map as $key) {
             $target[$key] = $source[$key];
         }
+        
+        return $target;
     }
 }

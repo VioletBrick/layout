@@ -3,18 +3,14 @@
 
 namespace Layout\Element\Output\Html;
 
-use Layout\ConfigInterface;
-use Layout\Output\FormatInterface;
-
+use Layout\LayoutConfig;
 class Template
     extends HtmlDefault
 {
-    protected $config;
     protected $template;
     
-    public function __construct(FormatInterface $format, $data = array(), ConfigInterface $config)
+    public function __construct(LayoutConfig $config)
     {
-        parent::__construct($format, $data);
         $this->config = $config;
     }
 

@@ -13,6 +13,17 @@ trait FluentTrait
     protected $attributes = array();
 
     /**
+     * @param array $attributes
+     */
+    public function setAttributes($attributes = array())
+    {
+        foreach ($attributes as $key => $value)
+        {
+            $this->attributes[$key] = $value;
+        }
+    }
+
+    /**
      * Get an attribute from the container.
      *
      * @param  string  $key

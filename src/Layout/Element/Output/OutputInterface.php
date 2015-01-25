@@ -4,9 +4,7 @@ namespace Layout\Element\Output;
 
 interface OutputInterface
 {
-    /**
-     * @return mixed
-     */
-    public function toHtml();
-    public function toArray();
+    public function setData($data);
+    public function addChildOutputResult($childName, $value);
+    public function getOutput();
 }

@@ -2,9 +2,9 @@
 namespace Layout;
 
 /** {license_text}  */ 
-interface ConfigInterface
+interface LayoutConfigInterface
 {
-    public function load(array $handles);
+    public function load($handles = [], $includeDefaultHandle = true);
     public function addConfigPath($path);
     public function addTemplatePath($path);
     public function toArray();

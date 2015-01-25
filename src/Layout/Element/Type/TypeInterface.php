@@ -1,16 +1,17 @@
 <?php
-
-namespace Layout;
+/** {license_text}  */
+namespace Layout\Element\Type;
 
 use ArrayAccess;
+use Layout\Element\Output\OutputInterface as ElementOutputInterface;
 use Layout\Support\Fluent;
 use JsonSerializable;
 use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Contracts\Support\Arrayable;
+use Layout\Support\FluentInterface;
 
-/** {license_text}  */ 
-interface ElementInterface
-    extends ArrayAccess, Arrayable, Jsonable, JsonSerializable
+interface TypeInterface
+    extends ArrayAccess, Arrayable, Jsonable, JsonSerializable, FluentInterface
 {
     /**
      * @param array $data
@@ -18,17 +19,22 @@ interface ElementInterface
     public function setData(array $data);
 
     /**
+     * @return mixed
+     */
+    public function getOutput();
+
+    /**
      * Retrieve element public data
      * 
      * @return Fluent|array
      */
-    public function getPublicData();
+    //public function getPublicData();
 
     /**
-     * @param ElementInterface $element
+     * @param TypeInterface $element
      * @param null $name
      */
-    public function addChild(ElementInterface $element, $name = null);
+    public function addChild(TypeInterface $element, $name = null);
 
     /**
      * @param string|null $name
@@ -47,12 +53,12 @@ interface ElementInterface
     public function removeChild($name = null);
 
     /**
-     * @param ElementInterface $element
+     * @param TypeInterface $element
      */
-    public function setParent(ElementInterface $element);
+    public function setParent(TypeInterface $element);
 
     /**
-     * @return ElementInterface
+     * @return TypeInterface
      */
     public function getParent();
 }

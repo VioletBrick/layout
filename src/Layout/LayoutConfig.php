@@ -7,8 +7,8 @@ use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
 use Symfony\Component\Yaml\Parser as Parser;
 
 /** {license_text}  */
-class Config
-    implements ConfigInterface
+class LayoutConfig
+    implements LayoutConfigInterface
 {
     const CONFIG_NODE_ACTION = 'action';
     const CONFIG_NODE_EXTEND = 'extend';
@@ -24,6 +24,7 @@ class Config
     protected $configPath   = array();
     protected $templatePath = array();
     protected $data         = array();
+    protected $handles      = array();
 
     public function __construct(Parser $parser)
     {
@@ -125,11 +126,20 @@ class Config
 
     /**
      * @param array $handles
+     * @param bool $includeDefaultHandle
      * @return $this
      */
-    public function load(array $handles)
+    public function load($handles = [], $includeDefaultHandle = true)
     {
+        if ($handles && !is_array($handles)) {
+            $handles = [$handles];
+        }
+        if ($includeDefaultHandle) {
+            $handles[] = 'default';
+        }
+        
         $data = array();
+        
         foreach ($this->configFiles as $file) {
             $data = $this->arrayMerge($data, $this->loadFile($file));
         }
@@ -154,5 +164,29 @@ class Config
     public function toArray()
     {
         return $this->data;
+    }
+
+    /**
+     * @return array
+     */
+    public function getHandles()
+    {
+        return $this->handles;
+    }
+
+    /**
+     * @param $handle
+     */
+    public function addHandle($handle)
+    {
+        $this->handles[] = $handle;
+    }
+
+    /**
+     * @param array $handles
+     */
+    public function setHandles(array $handles)
+    {
+        $this->handles = $handles;
     }
 }

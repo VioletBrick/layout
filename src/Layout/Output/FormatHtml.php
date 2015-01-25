@@ -3,10 +3,7 @@
 
 namespace Layout\Output;
 
-use Layout\Element\Output\OutputInterface;
-
 class FormatHtml
-    extends FormatAbstract
     implements FormatInterface
 {
     /**
@@ -28,14 +25,5 @@ class FormatHtml
         }
         
         return $data;
-    }
-
-    /**
-     * @param OutputInterface $elementOutputInterface
-     * @return mixed
-     */
-    protected function getElementOutput(OutputInterface $elementOutputInterface)
-    {
-        return $elementOutputInterface->toHtml();
     }
 }

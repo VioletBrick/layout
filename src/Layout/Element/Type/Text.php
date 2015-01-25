@@ -1,15 +1,13 @@
 <?php
+/** {license_text}  */
 namespace Layout\Element\Type;
 
-use Layout\ElementAbstract;
-
-/** {license_text}  */
 class Text
-    extends ElementAbstract
+    extends TypeAbstract
 {
-    protected function initialize(&$publicData)
+    protected function getPublicData()
     {
-        $this->fill($publicData, $this, array(
+        return $this->fill(array(), $this, array(
             'text'
         ));
     }

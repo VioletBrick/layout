@@ -13,8 +13,8 @@ class HtmlDefault
     public function toHtml()
     {
         $output = '';
-        if (!empty($this->children)) {
-            foreach ($this->children as $name => $childOutput) {
+        if (!empty($this->childOutputResult)) {
+            foreach ($this->childOutputResult as $name => $childOutput) {
                 $output = sprintf('%s%s', $output, $childOutput);
             }
         }
