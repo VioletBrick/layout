@@ -9,12 +9,10 @@ class ProcessorJson
     extends ProcessorAbstract
 {
     /**
-     * @param Builder $builder
      * @param FactoryJson $factory
      */
-    public function __construct(Builder $builder, FactoryJson $factory)
+    public function __construct(FactoryJson $factory)
     {
-        $this->setBuilder($builder);
         $this->setFactory($factory);
     }
 }
