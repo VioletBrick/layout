@@ -2,7 +2,6 @@
 /** {license_text}  */ 
 namespace Layout\Processor;
 
-use Layout\Element\Builder;
 use Layout\Element\Factory\FactoryJson;
 
 class ProcessorJson
