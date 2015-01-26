@@ -9,7 +9,7 @@ Edit your project's `composer.json` file to require `violetbrick/layout`.
         }
     ],
     "require": {
-        "adamgoose/laravel-annotations": "~5.0"
+        "violetbrick/layout": "dev-master"
     }
 
 Next, update Composer from the Terminal:
