@@ -1,4 +1,4 @@
-## Magento Like Layout System for Laravel Framework
+## Layout System for Laravel Framework
 
 Edit your project's `composer.json` file to require `violetbrick/layout`.
 
