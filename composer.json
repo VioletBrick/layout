@@ -3,8 +3,7 @@
     "description": "Layout System for Laravel Framework",
     "license": "MIT",
     "require": {
-        "laravel/framework": "~5.0",
-        "violetbrick/layout": "dev-master"
+        "laravel/framework": "~5.0"
     },
     "authors": [
         {
