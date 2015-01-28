@@ -1,7 +1,7 @@
 <?php
+/** {license_text}  */ 
 namespace Layout;
 
-/** {license_text}  */ 
 interface ConfigInterface
 {
     public function load($handles = [], $includeDefaultHandle = true);
