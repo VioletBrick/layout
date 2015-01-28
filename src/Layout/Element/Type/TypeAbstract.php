@@ -2,10 +2,10 @@
 /** {license_text}  */
 namespace Layout\Element\Type;
 
+use Core\Support\FluentInterface;
+use Core\Support\FluentTrait;
 use Layout\Element\Output\OutputInterface as ElementOutputInterface;
-use Layout\Support\FluentInterface;
-use Layout\Support\FluentTrait;
-use Predis\Connection\FactoryInterface;
+use Layout\Element\Factory\FactoryInterface;
 
 abstract class TypeAbstract
     implements TypeInterface
@@ -46,12 +46,22 @@ abstract class TypeAbstract
     {
         return array();
     }
+
+    /**
+     * Before output initialization
+     */
+    protected function beforeOutput()
+    {
+        
+    }
     
     /**
      * @return mixed
      */
     public function getOutput()
     {
+        $this->beforeOutput();
+        
         $output     = $this->output;
         $output->setPublicData($this->getPublicData());
         $output->setHiddenData($this->getHiddenData());

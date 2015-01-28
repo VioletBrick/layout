@@ -2,8 +2,7 @@
 /** {license_text}  */
 namespace Layout\Processor;
 
-use Illuminate\Foundation\Application;
-use Layout\LayoutConfigInterface;
+use Layout\ConfigInterface;
 use Layout\Element\Factory\FactoryInterface;
 use Layout\Element\Type\TypeInterface as ElementTypeInterface;
 
@@ -77,11 +76,11 @@ abstract class ProcessorAbstract
     }
 
     /**
-     * @param LayoutConfigInterface $layoutConfig
+     * @param ConfigInterface $layoutConfig
      * @return ElementTypeInterface
      * @throws ProcessorException
      */
-    public function build(LayoutConfigInterface $layoutConfig)
+    public function build(ConfigInterface $layoutConfig)
     {
         if (!$this->factory instanceof FactoryInterface) {
             throw new ProcessorException("Element Factory not defined");
@@ -94,11 +93,11 @@ abstract class ProcessorAbstract
     }
 
     /**
-     * @param LayoutConfigInterface $layoutConfig
+     * @param ConfigInterface $layoutConfig
      * @return mixed
      * @throws ProcessorException
      */
-    public function run(LayoutConfigInterface $layoutConfig)
+    public function run(ConfigInterface $layoutConfig)
     {
         return $this->build($layoutConfig)->getOutput();
     }

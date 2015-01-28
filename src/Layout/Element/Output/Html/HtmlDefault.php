@@ -1,8 +1,6 @@
 <?php
 /** {license_text}  */
-
 namespace Layout\Element\Output\Html;
-
 
 class HtmlDefault
     extends HtmlAbstract

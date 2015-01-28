@@ -1,7 +1,11 @@
 <?php
-namespace Layout;
 /** {license_text}  */
-abstract class ExceptionAbstract extends \Exception
+namespace Layout;
+
+use Exception;
+
+abstract class ExceptionAbstract 
+    extends Exception
 {
 
 }

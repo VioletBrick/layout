@@ -3,11 +3,11 @@
 namespace Layout\Element\Type;
 
 use ArrayAccess;
-use Layout\Support\Fluent;
+use Core\Support\FluentInterface;
 use JsonSerializable;
 use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Contracts\Support\Arrayable;
-use Layout\Support\FluentInterface;
+
 
 interface TypeInterface
     extends ArrayAccess, Arrayable, Jsonable, JsonSerializable, FluentInterface

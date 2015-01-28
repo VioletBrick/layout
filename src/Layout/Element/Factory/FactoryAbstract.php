@@ -3,7 +3,6 @@
 namespace Layout\Element\Factory;
 
 use Illuminate\Contracts\Container\Container as ContainerContract;
-use Layout\Element\Output\OutputInterface;
 use Layout\Element\Type\TypeInterface;
 
 abstract class FactoryAbstract
@@ -49,11 +48,11 @@ abstract class FactoryAbstract
         }
         
         $modelAlias = sprintf('%s.%s', $this->modelPrefix, $type);
-        $this->container->bind($modelAlias, $modelAbstract);
+        $this->container->bindIf($modelAlias, $modelAbstract);
         $this->modelMap[$type] = $modelAlias;
-
+        
         $outputModelAlias = sprintf('%s.%s', $this->outputModelPrefix, $type);
-        $this->container->bind($outputModelAlias, $outputModelAbstract);
+        $this->container->bindIf($outputModelAlias, $outputModelAbstract);
         $this->outputModelMap[$type] = $outputModelAlias;
     }
 
@@ -86,6 +85,10 @@ abstract class FactoryAbstract
             $instance = $this->container->make($this->defaultModel, array($this->resolveOutputModel($type)));
         }
         
+        if (method_exists($instance, 'initialize')) {
+            $this->container->call(array($instance, 'initialize'));
+        }
+        
         return $instance;
     }
 
@@ -99,6 +102,10 @@ abstract class FactoryAbstract
             $instance = $this->container->make($this->outputModelMap[$type]);
         } else {
             $instance = $this->container->make($this->defaultOutputModel);
+        }
+
+        if (method_exists($instance, 'initialize')) {
+            $this->container->call(array($instance, 'initialize'));
         }
 
         return $instance;
