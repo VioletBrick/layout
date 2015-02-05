@@ -2,8 +2,10 @@
 /** {license_text}  */
 namespace Layout\Element\Type;
 
+use Core\Support\Fluent;
 use Core\Support\FluentInterface;
 use Core\Support\FluentTrait;
+use Illuminate\Support\Collection;
 use Layout\Element\Output\OutputInterface as ElementOutputInterface;
 use Layout\Element\Factory\FactoryInterface;
 
@@ -54,6 +56,41 @@ abstract class TypeAbstract
     {
         
     }
+
+    /**
+     * @param $data
+     * @return Fluent|null
+     */
+    protected function prepareData($data)
+    {
+        if (is_object($data)) {
+            if ($data instanceof Collection) {
+                $data = $data->all();
+            } else {
+                $class = get_class($data);
+                // Ignore fluent objects
+                if ($class != 'Core\Support\Fluent' && $class != 'Illuminate\Support\Fluent') {
+                    if (method_exists($data, 'toArray')) {
+                        $data = new Fluent($data->toArray());
+                    }
+                }
+            }
+        }
+        
+        if (is_array($data) || $data instanceof Fluent || $data instanceof \Illuminate\Support\Fluent) {
+            foreach ($data as $key => $value) {
+                if (is_object($value) || is_array($value)) {
+                    $data[$key] = $this->prepareData($value);
+                } else {
+                    $data[$key] = $value;
+                }
+            }
+            
+            return $data;
+        }
+        
+        return null;
+    }
     
     /**
      * @return mixed
@@ -62,9 +99,15 @@ abstract class TypeAbstract
     {
         $this->beforeOutput();
         
-        $output     = $this->output;
-        $output->setPublicData($this->getPublicData());
-        $output->setHiddenData($this->getHiddenData());
+        $output = $this->output;
+        
+        if ($data = $this->prepareData($this->getPublicData())) {
+            $output->setPublicData($data);
+        }
+
+        if ($data = $this->prepareData($this->getHiddenData())) {
+            $output->setHiddenData($data);
+        }
         
         if ($this->hasChild()) {
             foreach ($this->getChild() as $name => $childElement) {

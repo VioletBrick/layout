@@ -177,7 +177,7 @@ class Config
                 $filePath = "{$path}/{$fileName}";
                 if (is_file($filePath)){
                     if (!in_array($fileName, $loadedFiles)) {
-                        $data          = $this->arrayMerge($data, $this->parser->parse(file_get_contents($filePath)));
+                        $data          = $this->arrayMerge($data, (array) $this->parser->parse(file_get_contents($filePath)));
                         $loadedFiles[] = $fileName;
                     }
                 }

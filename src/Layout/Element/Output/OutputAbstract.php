@@ -29,13 +29,18 @@ abstract class OutputAbstract
      */
     public function setHiddenData($key, $value = null)
     {
-        if (is_array($key) || $key instanceof FluentInterface) {
+        if (is_array($key)) {
             foreach ($key as $dataKey => $dataValue) {
+                $this->hiddenData[$dataKey] = $dataValue;
+            }
+        } else if (is_object($key) && method_exists($key, 'toArray')) {
+            foreach ($key->toArray() as $dataKey => $dataValue) {
                 $this->hiddenData[$dataKey] = $dataValue;
             }
         } else {
             $this->hiddenData[$key] = $value;
         }
+        
     }
 
     /**
@@ -44,8 +49,10 @@ abstract class OutputAbstract
      */
     public function setPublicData($key, $value = null)
     {
-        if (is_array($key) || $key instanceof FluentInterface) {
+        if (is_array($key)) {
             $this->setAttributes($key);
+        } else if (is_object($key) && method_exists($key, 'toArray')) {
+            $this->setAttributes($key->toArray());
         } else {
             $this->{$key} = $value;
         }
