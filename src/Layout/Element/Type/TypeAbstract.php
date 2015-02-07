@@ -72,7 +72,7 @@ abstract class TypeAbstract
                 // Ignore fluent objects
                 if ($class != 'Core\Support\Fluent' && $class != 'Illuminate\Support\Fluent') {
                     if (method_exists($data, 'toArray')) {
-                        $data = new Fluent($data->toArray());
+                        $data = $data->toArray();
                     }
                 }
             }
