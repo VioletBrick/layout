@@ -12,7 +12,17 @@ abstract class OutputAbstract
     use FluentTrait;
     
     protected $childOutputResult = array();
-    protected $hiddenData = array();
+    protected $protectedAttributes = array();
+
+    /**
+     * clear instance
+     */
+    public function clear()
+    {
+        $this->attributes = [];
+        $this->protectedAttributes = [];
+        $this->childOutputResult = [];
+    }
 
     /**
      * @param string $childName
@@ -27,18 +37,18 @@ abstract class OutputAbstract
      * @param string|array|FluentInterface $key
      * @param null $value
      */
-    public function setHiddenData($key, $value = null)
+    public function setProtectedAttributes($key, $value = null)
     {
         if (is_array($key)) {
             foreach ($key as $dataKey => $dataValue) {
-                $this->hiddenData[$dataKey] = $dataValue;
+                $this->protectedAttributes[$dataKey] = $dataValue;
             }
         } else if (is_object($key) && method_exists($key, 'toArray')) {
             foreach ($key->toArray() as $dataKey => $dataValue) {
-                $this->hiddenData[$dataKey] = $dataValue;
+                $this->protectedAttributes[$dataKey] = $dataValue;
             }
         } else {
-            $this->hiddenData[$key] = $value;
+            $this->protectedAttributes[$key] = $value;
         }
         
     }
@@ -62,9 +72,9 @@ abstract class OutputAbstract
      * @param $key
      * @return null
      */
-    protected function getHiddenData($key)
+    protected function getProtectedAttribute($key)
     {
-        return isset($this->hiddenData[$key]) ? $this->hiddenData[$key] : null;
+        return isset($this->protectedAttributes[$key]) ? $this->protectedAttributes[$key] : null;
     }
 
     /**
@@ -76,4 +86,16 @@ abstract class OutputAbstract
     {
         return null;
     }
+
+    /**
+     * @return mixed
+     */
+    public final function processOutput()
+    {
+        $output = $this->getOutput();
+        $this->clear();
+        
+        return $output;
+    }
+    
 }

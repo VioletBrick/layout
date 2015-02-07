@@ -26,8 +26,14 @@ interface FactoryInterface
 
     /**
      * @param $alias
-     * @param array $parameters
      * @return TypeInterface
      */
-    public function resolve($alias, array $parameters = array());
+    public function resolve($alias);
+
+    /**
+     * @param TypeInterface $instance
+     * @param array $params
+     * @return mixed
+     */
+    public function process(TypeInterface $instance, array $params = []);
 }

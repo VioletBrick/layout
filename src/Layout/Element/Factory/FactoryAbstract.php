@@ -15,6 +15,7 @@ abstract class FactoryAbstract
     protected $defaultOutputModel;
     protected $modelPrefix;
     protected $outputModelPrefix;
+    protected $types;
 
     /**
      * @return string
@@ -73,23 +74,45 @@ abstract class FactoryAbstract
     }
 
     /**
-     * @param string $type
-     * @param array $parameters
-     * @return TypeInterface
+     * @param $type
+     * @return mixed
      */
-    public function resolve($type, array $parameters = array())
+    protected function resolveTypeInstance($type)
     {
         if (isset($this->modelMap[$type])) {
-            $instance = $this->container->make($this->modelMap[$type], array($this->resolveOutputModel($type)));
+            $instance = $this->container->make($this->modelMap[$type]);
         } else {
-            $instance = $this->container->make($this->defaultModel, array($this->resolveOutputModel($type)));
+            $instance = $this->container->make($this->defaultModel);
         }
         
-        if (method_exists($instance, 'initialize')) {
-            $this->container->call(array($instance, 'initialize'));
-        }
+        $this->container->call(array($instance, 'setOutputModel'), array('output' => $this->resolveOutputModel($type)));
         
         return $instance;
+    }
+
+    /**
+     * @param string $type
+     * @return TypeInterface
+     */
+    public function resolve($type)
+    {
+        if(!isset($this->types[$type])) {
+            $this->types[$type] = $this->resolveTypeInstance($type);
+        }
+        
+        return $this->types[$type];
+    }
+
+    /**
+     * Call dependency injected method
+     * 
+     * @param TypeInterface $instance
+     * @param array $params
+     * @return mixed
+     */
+    public function process(TypeInterface $instance, array $params = [])
+    {
+        return $this->container->call(array($instance, '__process'), $params);
     }
 
     /**
@@ -102,10 +125,6 @@ abstract class FactoryAbstract
             $instance = $this->container->make($this->outputModelMap[$type]);
         } else {
             $instance = $this->container->make($this->defaultOutputModel);
-        }
-
-        if (method_exists($instance, 'initialize')) {
-            $this->container->call(array($instance, 'initialize'));
         }
 
         return $instance;

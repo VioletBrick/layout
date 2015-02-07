@@ -8,7 +8,7 @@ interface OutputInterface
      * @param string|array|FluentInterface $key
      * @param null $value
      */
-    public function setHiddenData($key, $value = null);
+    public function setProtectedAttributes($key, $value = null);
     
     /**
      * @param string|array|FluentInterface $key
@@ -26,4 +26,9 @@ interface OutputInterface
      * @return mixed
      */
     public function getOutput();
+
+    /**
+     * @return mixed
+     */
+    public function processOutput();
 }

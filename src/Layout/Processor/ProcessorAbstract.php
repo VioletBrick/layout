@@ -4,6 +4,9 @@ namespace Layout\Processor;
 
 use Layout\ConfigInterface;
 use Layout\Element\Factory\FactoryInterface;
+use Layout\Element\Type\DataTransportChildren;
+use Layout\Element\Type\DataTransportProtected;
+use Layout\Element\Type\DataTransportPublic;
 use Layout\Element\Type\TypeInterface as ElementTypeInterface;
 
 abstract class ProcessorAbstract
@@ -13,83 +16,91 @@ abstract class ProcessorAbstract
     protected $factory;
     /** @var  ElementTypeInterface */
     protected $rootElement;
+    /** @var  DataTransportPublic */
+    protected $dataTransportPublic;
+    /** @var  DataTransportProtected */
+    protected $dataTransportProtected;
+    /** @var  DataTransportChildren */
+    protected $dataTransportChildren;
 
     /**
      * @param FactoryInterface $factory
+     * @param DataTransportPublic $dataTransportPublic
+     * @param DataTransportProtected $dataTransportProtected
+     * @param DataTransportChildren $dataTransportChildren
      */
-    public function setFactory(FactoryInterface $factory)
+    public function __construct(
+        FactoryInterface $factory, 
+        DataTransportPublic $dataTransportPublic, 
+        DataTransportProtected $dataTransportProtected, 
+        DataTransportChildren $dataTransportChildren
+    )
     {
-        $this->factory = $factory;
+        $this->factory                = $factory;
+        $this->dataTransportPublic    = $dataTransportPublic;
+        $this->dataTransportProtected = $dataTransportProtected;
+        $this->dataTransportChildren  = $dataTransportChildren;
     }
 
     /**
      * @param array $elementConfig
-     * @return ElementTypeInterface
+     * @return array
      */
-    protected function createElement(array $elementConfig)
+    protected function extractElementAttributes(array &$elementConfig)
     {
-        $elementData = array();
+        $attributes = [];
         foreach ($elementConfig as $key => $value) {
             if (0 === strpos($key, '_')) {
-                $elementData[substr($key, 1)] = $value;
+                $k = substr($key, 1);
+                $attributes[$k] = $value;
+                unset($elementConfig[$key]);
             }
         }
-
-        $type    = (isset($elementData['type']) ? $elementData['type'] : null);
-        $element =  $this->factory->resolve($type);
-        $element->setAttributes($elementData);
-
-        return $element;
+        
+        return $attributes;
     }
 
     /**
      * @param $name
      * @return bool
      */
-    protected function isValidElementName($name)
+    protected function isElementNode($name)
     {
         return 0 < preg_match('/^[^_]\w+$/ui', $name);
     }
 
     /**
-     * @param array $layoutConfig
-     * @param ElementTypeInterface $parent
+     * @param array $elements
+     * @param string $path
      * @return array
      */
-    protected function generateElements(array $layoutConfig, ElementTypeInterface $parent = null)
+    protected function processElements(array $elements, $path = '')
     {
-        $elements = array();
-        foreach ($layoutConfig as $name => $elementConfig) {
-            if ($this->isValidElementName($name)) {
-                $elements[$name] = $this->createElement(is_array($elementConfig) ? $elementConfig : array());
-                if ($parent) {
-                    $parent->addChild($elements[$name], $name);
+        $result = [];
+        foreach ($elements as $elementName => $elementsConfig) {
+            $elementPath = "{$path}/{$elementName}";
+            $attributes = ['path' => $elementPath];
+            if (is_array($elementsConfig)) {
+                $children   = [];
+                if (!empty($elementsConfig)) {
+                    $attributes += $this->extractElementAttributes($elementsConfig);
                 }
-
-                if (is_array($elementConfig)) {
-                    $this->generateElements($elementConfig, $elements[$name]);
+                if (!empty($elementsConfig)) {
+                    $children += $this->processElements($elementsConfig, $elementPath);
                 }
+                $this->dataTransportChildren->setAttributes($children);
             }
+            $this->dataTransportProtected->setAttributes($attributes);
+
+            $typeModel = $this->factory->resolve($this->dataTransportProtected['type']);
+            $result[$elementName] = $typeModel->processOutput($this->dataTransportPublic, $this->dataTransportProtected, $this->dataTransportChildren);
+
+            $this->dataTransportPublic->clearAttributes();
+            $this->dataTransportProtected->clearAttributes();
+            $this->dataTransportChildren->clearAttributes();
         }
 
-        return $elements;
-    }
-
-    /**
-     * @param ConfigInterface $layoutConfig
-     * @return ElementTypeInterface
-     * @throws ProcessorException
-     */
-    public function build(ConfigInterface $layoutConfig)
-    {
-        if (!$this->factory instanceof FactoryInterface) {
-            throw new ProcessorException("Element Factory not defined");
-        }
-
-        $rootElement = $this->createElement([]);
-        $this->generateElements($layoutConfig->toArray(), $rootElement);
-        
-        return $rootElement;
+        return $result;
     }
 
     /**
@@ -99,6 +110,12 @@ abstract class ProcessorAbstract
      */
     public function run(ConfigInterface $layoutConfig)
     {
-        return $this->build($layoutConfig)->getOutput();
+        $elements = [
+            'root' => $layoutConfig->toArray()
+        ];
+        
+        $result = $this->processElements($elements);
+        
+        return isset($result['root']) ? $result['root'] : null;
     }
 }

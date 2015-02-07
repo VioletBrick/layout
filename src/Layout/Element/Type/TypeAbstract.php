@@ -3,58 +3,59 @@
 namespace Layout\Element\Type;
 
 use Core\Support\Fluent;
-use Core\Support\FluentInterface;
-use Core\Support\FluentTrait;
 use Illuminate\Support\Collection;
 use Layout\Element\Output\OutputInterface as ElementOutputInterface;
-use Layout\Element\Factory\FactoryInterface;
 
 abstract class TypeAbstract
     implements TypeInterface
 {
-    use FluentTrait;
-    
-    /** @var  TypeInterface */
-    protected $parent;
-    protected $children = array();
     /** @var  ElementOutputInterface */
-    protected $output;
-    protected $prepared = false;
-    
+    protected $outputModel;
+
     /**
-     * @param ElementOutputInterface $outputInterface
+     * @param DataTransportPublic $publicData
+     * @param DataTransportProtected $protectedData
+     * @return mixed
      */
-    public function __construct(ElementOutputInterface $outputInterface)
+    abstract protected function process(DataTransportPublic $publicData, DataTransportProtected $protectedData);
+
+    /**
+     * @param ElementOutputInterface $output
+     */
+    final public function setOutputModel(ElementOutputInterface $output)
     {
-        $this->output = $outputInterface;
+        $this->outputModel = $output;
     }
 
     /**
-     * Prepare data for frontend model
-     * 
-     * @return array
+     * @param DataTransportPublic $publicData
+     * @param DataTransportProtected $protectedData
+     * @param DataTransportChildren $childrenOutput
+     * @return mixed
      */
-    protected function getPublicData()
+    final public function processOutput(DataTransportPublic $publicData, DataTransportProtected $protectedData, DataTransportChildren $childrenOutput)
     {
-        return array();
-    }
-
-    /**
-     * Prepare hidden data for frontend model
-     * 
-     * @return array
-     */
-    protected function getHiddenData()
-    {
-        return array();
-    }
-
-    /**
-     * Before output initialization
-     */
-    protected function beforeOutput()
-    {
+        $this->process($publicData, $protectedData);
         
+        $output = $this->outputModel;
+
+        if ($data = $this->prepareData($publicData->getAttributes())) {
+            $output->setPublicData($data);
+        } else {
+            $output->setPublicData([]);
+        }
+
+        if ($data = $this->prepareData($protectedData)) {
+            $output->setProtectedAttributes($data);
+        } else {
+            $output->setProtectedAttributes([]);
+        }
+
+        foreach ($childrenOutput->getAttributes() as $name => $childOutput) {
+            $output->addChildOutputResult($name, $childOutput);
+        }
+        
+        return $output->processOutput();
     }
 
     /**
@@ -91,107 +92,6 @@ abstract class TypeAbstract
         
         return null;
     }
-    
-    /**
-     * @return mixed
-     */
-    public function getOutput()
-    {
-        $this->beforeOutput();
-        
-        $output = $this->output;
-        
-        if ($data = $this->prepareData($this->getPublicData())) {
-            $output->setPublicData($data);
-        }
-
-        if ($data = $this->prepareData($this->getHiddenData())) {
-            $output->setHiddenData($data);
-        }
-        
-        if ($this->hasChild()) {
-            foreach ($this->getChild() as $name => $childElement) {
-                $output->addChildOutputResult($name, $childElement->getOutput());
-            }
-        }
-
-        /** @var ElementOutputInterface $outputModel */
-        return $output->getOutput();
-    }
-
-    /**
-     * @param array $data
-     */
-    public function setData(array $data)
-    {
-        $this->setAttributes($data);
-    }
-
-    /**
-     * @param TypeInterface $element
-     * @param null $name
-     */
-    public function addChild(TypeInterface $element, $name = null)
-    {
-        $name = ($name ?: $element['name'] ?: uniqid('nameless_'));
-        $this->children[$name] = $element;
-        $element->setParent($this);
-    }
-
-    /**
-     * @param null $name
-     * @return array|bool|TypeInterface
-     */
-    public function getChild($name = null)
-    {
-        if (is_null($name)) {
-            return $this->children;
-        }
-        
-        if (isset($this->children[$name])) {
-            return $this->children[$name];
-        }
-        
-        return false;
-    }
-
-    /**
-     * @param string|null $name
-     */
-    public function removeChild($name = null)
-    {
-        if ($name) {
-            if (isset($this->children[$name])) {
-                unset($this->children[$name]);
-            }
-        } else {
-            $this->children = array();
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasChild()
-    {
-        return !empty($this->children);
-    }
-
-    /**
-     * @param TypeInterface $element
-     */
-    public function setParent(TypeInterface $element)
-    {
-        $this->parent = $element;
-    }
-
-    /**
-     * @return TypeInterface
-     */
-    public function getParent()
-    {
-        return $this->parent;
-    }
 
     /**
      * @return null
@@ -207,26 +107,5 @@ abstract class TypeAbstract
     public function __toString()
     {
         return '';
-    }
-    
-    /**
-     * @param $target
-     * @param $source
-     * @param array $map
-     * @return array|FactoryInterface
-     * @throws TypeException
-     */
-    protected function fill($target, $source, array $map)
-    {
-        if ((is_array($target) || $target instanceof FluentInterface) 
-            && (is_array($source) || $source instanceof FluentInterface)) {
-            foreach ($map as $key) {
-                $target[$key] = $source[$key];
-            }
-        } else {
-            throw new TypeException('Invalid data type for fill method');
-        }
-        
-        return $target;
     }
 }

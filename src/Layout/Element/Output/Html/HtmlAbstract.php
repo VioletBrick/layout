@@ -17,14 +17,6 @@ abstract class HtmlAbstract
     }
 
     /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return $this->toHtml();
-    }
-
-    /**
      * @param string $key
      * @param null $default
      * @return string

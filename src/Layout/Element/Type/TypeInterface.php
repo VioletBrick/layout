@@ -2,55 +2,13 @@
 /** {license_text}  */
 namespace Layout\Element\Type;
 
-use ArrayAccess;
-use Core\Support\FluentInterface;
-use JsonSerializable;
-use Illuminate\Contracts\Support\Jsonable;
-use Illuminate\Contracts\Support\Arrayable;
-
-
 interface TypeInterface
-    extends ArrayAccess, Arrayable, Jsonable, JsonSerializable, FluentInterface
 {
     /**
-     * @param array $data
-     */
-    public function setData(array $data);
-
-    /**
+     * @param DataTransportPublic $publicData
+     * @param DataTransportProtected $protectedData
+     * @param DataTransportChildren $childrenOutput
      * @return mixed
      */
-    public function getOutput();
-
-    /**
-     * @param TypeInterface $element
-     * @param null $name
-     */
-    public function addChild(TypeInterface $element, $name = null);
-
-    /**
-     * @param string|null $name
-     * @return mixed
-     */
-    public function getChild($name = null);
-
-    /**
-     * @return bool
-     */
-    public function hasChild();
-
-    /**
-     * @param string|null $name
-     */
-    public function removeChild($name = null);
-
-    /**
-     * @param TypeInterface $element
-     */
-    public function setParent(TypeInterface $element);
-
-    /**
-     * @return TypeInterface
-     */
-    public function getParent();
+    public function processOutput(DataTransportPublic $publicData, DataTransportProtected $protectedData, DataTransportChildren $childrenOutput);
 }
