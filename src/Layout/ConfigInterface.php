@@ -6,5 +6,6 @@ interface ConfigInterface
 {
     public function load($handles = [], $includeDefaultHandle = true);
     public function addConfigPath($path);
+    public function setTarget($target);
     public function toArray();
 }

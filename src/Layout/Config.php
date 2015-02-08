@@ -20,6 +20,7 @@ class Config
     protected $schema;
     
     protected $configPath   = array();
+    protected $globalData   = array();
     protected $data         = array();
     protected $handles      = array();
     
@@ -72,11 +73,11 @@ class Config
      */
     protected function applyRemoves()
     {
-        foreach ($this->data as $key => $value) {
+        foreach ($this->globalData as $key => $value) {
             if (self::ACTION_REMOVE == $key) {
                 foreach((array)$value as $path) {
                     $path = explode('/', $path);
-                    $config = &$this->data;
+                    $config = &$this->globalData;
                     while ($name = array_shift($path)) {
                         if (empty($path)) {
                             unset($config[$name]);
@@ -90,7 +91,7 @@ class Config
                         }
                     }
                 }
-                unset($this->data[$key]);
+                unset($this->globalData[$key]);
             }
         }
     }
@@ -100,11 +101,11 @@ class Config
      */
     protected function applyRewrites()
     {
-        foreach ($this->data as $key => $value) {
+        foreach ($this->globalData as $key => $value) {
             if (self::ACTION_REWRITE == $key) {
                 foreach((array) $value as $path => $data) {
                     $path = explode('/', $path);
-                    $config = &$this->data;
+                    $config = &$this->globalData;
                     while ($name = array_shift($path)) {
                         if (empty($path)) {
                             $config[$name] = $data;
@@ -118,7 +119,7 @@ class Config
                         }
                     }
                 }
-                unset($this->data[$key]);
+                unset($this->globalData[$key]);
             }
         }
     }
@@ -186,18 +187,44 @@ class Config
         
         foreach ($data as $handle => $handleData) {
             if (in_array($handle, $handles)) {
-                if (empty($this->data)) {
-                    $this->data = $handleData;
+                if (empty($this->globalData)) {
+                    $this->globalData = $handleData;
                 } else {
-                    $this->data = $this->arrayMerge($this->data, $handleData);
+                    $this->globalData = $this->arrayMerge($this->globalData, $handleData);
                 }
-                
             }
         }
         
         $this->applyRewrites();
         $this->applyRemoves();
+
+        $this->globalData = array_shift($this->globalData);
+        
+        $this->data = $this->globalData;
         
         return $this;
+    }
+
+    /**
+     * @param string $target
+     */
+    public function setTarget($target)
+    {
+        if ($target) {
+            $path = explode('/', $target);
+            if (!empty($path)) {
+                $data = $this->globalData;
+                while ($elementName = array_shift($path)) {
+                    if (isset($data[$elementName])) {
+                        $data = $data[$elementName];
+                    } else {
+                        $data = null;
+                        break;
+                    }
+                    
+                }
+                $this->data = $data;
+            }
+        }
     }
 }
