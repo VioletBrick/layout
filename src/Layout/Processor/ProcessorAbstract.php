@@ -73,13 +73,79 @@ abstract class ProcessorAbstract
     }
 
     /**
+     * @param array $array
+     * @param array $addArray
+     * @param int $offset
+     * @return array
+     */
+    protected function addToArray(array $array, array $addArray, $offset)
+    {
+        return array_slice($array, 0, $offset, true) +
+            $addArray +
+            array_slice($array, $offset, NULL, true);
+    }
+
+    /**
+     * @param array $elements
+     * @return array
+     */
+    protected function sortElements(array $elements)
+    {
+        $offset = 0;
+        while (false !== ($data = current($elements))) {
+            $key  =  key($elements);
+            $reset = false;
+            
+            if (isset($data['_before']) && ($target = $data['_before'])) {
+                unset($data['_before'], $data['_after']);
+                if ('*' == $target) {
+                    unset($elements[$key]);
+                    $elements = [$key => $data] + $elements;
+                    $reset = true;
+                } else if (isset($elements[$target])) {
+                    unset($elements[$key]);
+                    if (false !== ($offset = array_search($target, array_keys($elements)))) {
+                        $elements = $this->addToArray($elements, [$key => $data], $offset);
+                    }
+                    $reset = true;
+                }
+            } else if (isset($data['_after']) && ($target = $data['_after'])) {
+                unset($data['_before'], $data['_after']);
+                if ('*' == $target) {
+                    unset($elements[$key]);
+                    $elements = $elements + [$key => $data];
+                    $reset = true;
+                } else if (isset($elements[$target])) {
+                    unset($elements[$key]);
+                    if (false !== ($offset = array_search($target, array_keys($elements)))) {
+                        $elements = $this->addToArray($elements, [$key => $data], $offset+1);
+                    }
+                    $reset = true;
+                }
+            }
+            
+            
+            if ($reset) {
+                reset($elements);
+                $offset = 0;
+            } else {
+                next($elements);
+                $offset++;
+            }
+        }
+        
+        return $elements;
+    }
+
+    /**
      * @param array $elements
      * @param string $path
      * @return array
      */
     protected function processElements(array $elements, $path = '')
     {
-        $result = [];
+        $result   = [];
+        $elements = $this->sortElements($elements);
         foreach ($elements as $elementName => $elementsConfig) {
             $elementPath = "{$path}/{$elementName}";
             $attributes = ['path' => $elementPath];

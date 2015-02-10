@@ -2,7 +2,9 @@
 /** {license_text}  */
 namespace Layout;
 
+use Carbon\Carbon;
 use Core\Support\DebugTrait;
+use Illuminate\Cache\CacheManager;
 use Symfony\Component\Yaml\Parser as Parser;
 
 /** {license_text}  */
@@ -10,30 +12,82 @@ class Config
     implements ConfigInterface
 {
     use DebugTrait;
-    
-    const ACTION_REWRITE  = 'rewrite';
-    const ACTION_REMOVE   = 'remove';
-    
-    protected $actions = array(self::ACTION_REWRITE, self::ACTION_REMOVE);
+
+    const ACTION_EXTEND  = '%extend';
+    const ACTION_REWRITE = '%rewrite';
+    const ACTION_REMOVE  = '%remove';
+
+    protected $actions = array(self::ACTION_REWRITE, self::ACTION_REMOVE, self::ACTION_EXTEND);
 
     protected $systemNodes  = array();
-    
+
     /** @var  Parser */
     protected $parser;
     protected $schema;
-    
+
     protected $configPath   = array();
-    protected $globalData   = array();
+    protected $scopeData   = array();
     protected $data         = array();
     protected $handles      = array();
-    
-    protected $container;
 
-    public function __construct(Parser $parser)
+    protected $cacheEnabled = true;
+    /** @var  CacheStore */
+    protected $cache;
+    protected $cachePrefix = 'layout::';
+    protected $cacheExpiresAt;
+
+    /**
+     * @param Parser $parser
+     * @param CacheManager $cache
+     * @param Carbon $carbon
+     */
+    public function __construct(Parser $parser, CacheManager $cache, Carbon $carbon)
     {
-        $this->parser = $parser;
+        $this->parser         = $parser;
+        $this->cache          = $cache;
+        $this->cacheExpiresAt = $carbon->now()->addMinutes(60);
     }
-    
+
+    /**
+     * @param $value
+     */
+    public function setCacheExpiresAt($value)
+    {
+        $this->cacheExpiresAt = $value;
+    }
+
+    /**
+     * @param bool $flag
+     */
+    public function setCacheEnabled($flag = true)
+    {
+        $this->cacheEnabled = $flag;
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     */
+    protected function addCache($key, $value)
+    {
+        if ($this->cacheEnabled) {
+            $this->cache->put($this->cachePrefix . $key, $value, $this->cacheExpiresAt);
+        }
+    }
+
+    /**
+     * @param $key
+     * @return bool|mixed
+     */
+    protected function getCache($key)
+    {
+        if ($this->cacheEnabled) {
+            return $this->cache->get($this->cachePrefix . $key, false);
+        }
+
+        return false;
+    }
+
     /**
      * @param string $path
      * @return $this
@@ -43,7 +97,7 @@ class Config
         if (is_dir($path)) {
             array_unshift($this->configPath, $path);
         }
-        
+
         return $this;
     }
 
@@ -67,7 +121,7 @@ class Config
                 $target[$key] = $value;
             }
         }
-        
+
         return $target;
     }
 
@@ -76,11 +130,11 @@ class Config
      */
     protected function applyRemoves()
     {
-        foreach ($this->globalData as $key => $value) {
+        foreach ($this->scopeData as $key => $value) {
             if (self::ACTION_REMOVE == $key) {
                 foreach((array)$value as $path) {
                     $path = explode('/', $path);
-                    $config = &$this->globalData;
+                    $config = &$this->scopeData;
                     while ($name = array_shift($path)) {
                         if (empty($path)) {
                             unset($config[$name]);
@@ -94,7 +148,38 @@ class Config
                         }
                     }
                 }
-                unset($this->globalData[$key]);
+                unset($this->scopeData[$key]);
+            }
+        }
+    }
+
+    /**
+     * Rewrite value by path
+     */
+    protected function applyExtends()
+    {
+        foreach ($this->scopeData as $key => $value) {
+            if (self::ACTION_EXTEND == $key) {
+                foreach((array) $value as $path => $data) {
+                    $path = explode('/', $path);
+                    $config = &$this->scopeData;
+                    while ($name = array_shift($path)) {
+                        if (empty($config[$name])) {
+                            break;
+                        }
+                        if (empty($path)) {
+                            $config[$name] = $this->arrayMerge($config[$name], $data);
+                            break;
+                        } else {
+                            if (isset($config[$name])) {
+                                $config = &$config[$name];
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
+                unset($this->scopeData[$key]);
             }
         }
     }
@@ -104,25 +189,28 @@ class Config
      */
     protected function applyRewrites()
     {
-        foreach ($this->globalData as $key => $value) {
+        foreach ($this->scopeData as $key => $value) {
             if (self::ACTION_REWRITE == $key) {
                 foreach((array) $value as $path => $data) {
                     $path = explode('/', $path);
-                    $config = &$this->globalData;
+                    $config = &$this->scopeData;
                     while ($name = array_shift($path)) {
+                        if (empty($config[$name])) {
+                            break;
+                        }
                         if (empty($path)) {
                             $config[$name] = $data;
-                            continue 2;
+                            break;
                         } else {
                             if (isset($config[$name])) {
                                 $config = &$config[$name];
                             } else {
-                                continue 2;
+                                break;
                             }
                         }
                     }
                 }
-                unset($this->globalData[$key]);
+                unset($this->scopeData[$key]);
             }
         }
     }
@@ -167,7 +255,7 @@ class Config
     public function load($handles = [], $includeDefaultHandle = true)
     {
         $this->startDebugMeasure('layout_config_load', 'Loading Layout Configuration');
-        
+
         if ($handles && !is_array($handles)) {
             $handles = [$handles];
         }
@@ -175,40 +263,53 @@ class Config
             $handles[] = 'default';
         }
 
-        $data        = array();
-        $loadedFiles = array();
-        
-        foreach ($this->configPath as $path) {
-            foreach (scandir($path) as $fileName) {
-                $filePath = "{$path}/{$fileName}";
-                if (is_file($filePath)){
-                    if (!in_array($fileName, $loadedFiles)) {
-                        $data          = $this->arrayMerge($data, (array) $this->parser->parse(file_get_contents($filePath)));
-                        $loadedFiles[] = $fileName;
+        sort($handles);
+
+        $cacheKey = 'config::' . implode('|', $handles);
+
+        $this->scopeData = $this->getCache($cacheKey);
+
+        if (!$this->scopeData) {
+            $data = $this->getCache('config');
+            if (!$data) {
+                $data        = [];
+                $loadedFiles = [];
+                foreach ($this->configPath as $path) {
+                    foreach (scandir($path) as $fileName) {
+                        $filePath = "{$path}/{$fileName}";
+                        if (is_file($filePath)) {
+                            if (!in_array($fileName, $loadedFiles)) {
+                                $data          = $this->arrayMerge($data, (array)$this->parser->parse(file_get_contents($filePath)));
+                                $loadedFiles[] = $fileName;
+                            }
+                        }
+                    }
+                }
+                $this->addCache('config', $data);
+            }
+
+            foreach ($data as $handle => $handleData) {
+                if (in_array($handle, $handles)) {
+                    if (empty($this->scopeData)) {
+                        $this->scopeData = $handleData;
+                    } else {
+                        $this->scopeData = $this->arrayMerge($this->scopeData, $handleData);
                     }
                 }
             }
-        }
-        
-        foreach ($data as $handle => $handleData) {
-            if (in_array($handle, $handles)) {
-                if (empty($this->globalData)) {
-                    $this->globalData = $handleData;
-                } else {
-                    $this->globalData = $this->arrayMerge($this->globalData, $handleData);
-                }
-            }
-        }
-        
-        $this->applyRewrites();
-        $this->applyRemoves();
 
-        $this->globalData = array_shift($this->globalData);
-        
-        $this->data = $this->globalData;
+            $this->applyRewrites();
+            $this->applyExtends();
+            $this->applyRemoves();
+
+            $this->scopeData = array_shift($this->scopeData);
+            $this->addCache($cacheKey, $this->scopeData);
+        }
+
+        $this->data = $this->scopeData;
 
         $this->stopDebugMeasure('layout_config_load');
-        
+
         return $this;
     }
 
@@ -220,7 +321,7 @@ class Config
         if ($target) {
             $path = explode('/', $target);
             if (!empty($path)) {
-                $data = $this->globalData;
+                $data = $this->scopeData;
                 while ($elementName = array_shift($path)) {
                     if (isset($data[$elementName])) {
                         $data = $data[$elementName];
@@ -228,7 +329,7 @@ class Config
                         $data = null;
                         break;
                     }
-                    
+
                 }
                 $this->data = $data;
             }
