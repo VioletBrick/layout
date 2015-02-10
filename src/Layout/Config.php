@@ -2,12 +2,15 @@
 /** {license_text}  */
 namespace Layout;
 
+use Core\Support\DebugTrait;
 use Symfony\Component\Yaml\Parser as Parser;
 
 /** {license_text}  */
 class Config
     implements ConfigInterface
 {
+    use DebugTrait;
+    
     const ACTION_REWRITE  = 'rewrite';
     const ACTION_REMOVE   = 'remove';
     
@@ -163,6 +166,8 @@ class Config
      */
     public function load($handles = [], $includeDefaultHandle = true)
     {
+        $this->startDebugMeasure('layout_config_load', 'Loading Layout Configuration');
+        
         if ($handles && !is_array($handles)) {
             $handles = [$handles];
         }
@@ -201,6 +206,8 @@ class Config
         $this->globalData = array_shift($this->globalData);
         
         $this->data = $this->globalData;
+
+        $this->stopDebugMeasure('layout_config_load');
         
         return $this;
     }

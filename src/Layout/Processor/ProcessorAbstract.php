@@ -2,6 +2,7 @@
 /** {license_text}  */
 namespace Layout\Processor;
 
+use Core\Support\DebugTrait;
 use Layout\ConfigInterface;
 use Layout\Element\Factory\FactoryInterface;
 use Layout\Element\Type\DataTransportChildren;
@@ -12,6 +13,8 @@ use Layout\Element\Type\TypeInterface as ElementTypeInterface;
 abstract class ProcessorAbstract
     implements ProcessorInterface
 {
+    use DebugTrait;
+    
     /** @var  FactoryInterface */ 
     protected $factory;
     /** @var  ElementTypeInterface */
@@ -110,11 +113,15 @@ abstract class ProcessorAbstract
      */
     public function run(ConfigInterface $layoutConfig)
     {
+        $this->startDebugMeasure('layout_render','Time for rendering layout');
+        
         $elements = [
             'root' => $layoutConfig->toArray()
         ];
         
         $result = $this->processElements($elements);
+
+        $this->stopDebugMeasure('layout_render');
         
         return isset($result['root']) ? $result['root'] : null;
     }
