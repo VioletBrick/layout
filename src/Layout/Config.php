@@ -263,8 +263,10 @@ class Config
             $handles[] = 'default';
         }
 
-        sort($handles);
+        $handles = array_unique($handles);
 
+        sort($handles);
+        
         $cacheKey = 'config::' . implode('|', $handles);
 
         $this->scopeData = $this->getCache($cacheKey);
