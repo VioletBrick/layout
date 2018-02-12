@@ -1,11 +1,11 @@
 {
-    "name": "violetbrick/layout",
+    "name": "invarhq/layout",
     "description": "Layout System for Laravel Framework",
     "keywords": ["laravel", "view", "layout"],
     "license": "CC BY 4.0",
     "require": {
         "laravel/framework": "~5.0",
-        "violetbrick/core": "dev-master"
+        "invarhq/core": "dev-master"
     },
     "authors": [
         {
